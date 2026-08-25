@@ -1,4 +1,3 @@
-# envs/base_env.py
 import gymnasium as gym
 
 def make_env(env_id: str = "LunarLander-v3", seed: int = 0):
