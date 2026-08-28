@@ -19,7 +19,6 @@ def load_reward_model(obs_dim: int, action_dim: int) -> RewardModel:
 
 
 def run_episode(model, env, reward_model, action_dim, max_steps=500):
-
     obs, info = env.reset()
     env_return, learned_return = 0.0, 0.0
 
@@ -74,12 +73,12 @@ def compare_agents():
     env.close()
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.boxplot([base_env_r, rlhf_env_r], labels=["Base PPO", "RLHF-Tuned"])
+    ax.boxplot([base_env_r, rlhf_env_r], tick_labels=["Base PPO", "RLHF-Tuned"])
     ax.set_title("Raw Environment Reward per Episode")
     ax.set_ylabel("Episode Return")
 
     fig2, ax2 = plt.subplots(figsize=(8, 5))
-    ax2.boxplot([base_learned_r, rlhf_learned_r], labels=["Base PPO", "RLHF-Tuned"])
+    ax2.boxplot([base_learned_r, rlhf_learned_r], tick_labels=["Base PPO", "RLHF-Tuned"])
     ax2.set_title("Reward Model Score per Episode")
     ax2.set_ylabel("Learned Reward Score")
 
