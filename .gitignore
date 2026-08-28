@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+base_agent/checkpoints/
+base_agent/logs/
+reward_model/checkpoints/
+rlhf_finetune/checkpoints/
+tuning/results/
+preference_collection/data/
+eval/results/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
