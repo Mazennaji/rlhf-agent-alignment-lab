@@ -5,9 +5,10 @@ from torch.utils.data import Dataset
 
 
 class PreferenceDataset(Dataset):
-    def __init__(self, pkl_path: str, action_dim: int):
+    def __init__(self, pkl_path: str, action_dim: int, indices=None):
         with open(pkl_path, "rb") as f:
-            self.data = pickle.load(f)
+            all_data = pickle.load(f)
+        self.data = [all_data[i] for i in indices] if indices is not None else all_data
         self.action_dim = action_dim
 
     def __len__(self):
@@ -31,3 +32,15 @@ class PreferenceDataset(Dataset):
 
 def collate_fn(batch):
     return batch
+
+
+def train_val_split(pkl_path: str, val_fraction: float, seed: int):
+    with open(pkl_path, "rb") as f:
+        data = pickle.load(f)
+    n = len(data)
+    rng = np.random.RandomState(seed)
+    indices = rng.permutation(n)
+    n_val = int(n * val_fraction)
+    val_idx = indices[:n_val].tolist()
+    train_idx = indices[n_val:].tolist()
+    return train_idx, val_idx
