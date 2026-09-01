@@ -7,15 +7,14 @@ from stable_baselines3.common.monitor import Monitor
 
 from envs.base_env import make_env
 from configs.config import CFG
-from reward_model.model import RewardModel
+from reward_model.ensemble import RewardModelEnsemble
 from rlhf_finetune.reward_wrapper import RLHFRewardWrapper, ModelRef
 
 
-def load_reward_model(obs_dim: int, action_dim: int) -> RewardModel:
-    model = RewardModel(obs_dim, action_dim)
-    model.load_state_dict(torch.load("reward_model/checkpoints/reward_model.pt"))
-    model.eval()
-    return model
+def load_reward_model(obs_dim: int, action_dim: int) -> RewardModelEnsemble:
+    return RewardModelEnsemble.load(
+        obs_dim, action_dim, n_models=CFG.reward_model_ensemble_size
+    )
 
 
 def finetune_with_rlhf():
