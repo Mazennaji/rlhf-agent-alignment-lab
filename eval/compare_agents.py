@@ -8,14 +8,13 @@ from stable_baselines3 import PPO
 
 from envs.base_env import make_env
 from configs.config import CFG
-from reward_model.model import RewardModel
+from reward_model.ensemble import RewardModelEnsemble
 
 
-def load_reward_model(obs_dim: int, action_dim: int) -> RewardModel:
-    model = RewardModel(obs_dim, action_dim)
-    model.load_state_dict(torch.load("reward_model/checkpoints/reward_model.pt"))
-    model.eval()
-    return model
+def load_reward_model(obs_dim: int, action_dim: int) -> RewardModelEnsemble:
+    return RewardModelEnsemble.load(
+        obs_dim, action_dim, n_models=CFG.reward_model_ensemble_size
+    )
 
 
 def run_episode(model, env, reward_model, action_dim, max_steps=500):
@@ -161,6 +160,7 @@ def write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta
 - Environment: `{CFG.env_id}`
 - Fine-tune kl_coef: `{CFG.kl_coef}`
 - Fine-tune timesteps: `{CFG.finetune_timesteps}`
+- Reward model ensemble size: `{CFG.reward_model_ensemble_size}`
 - Evaluation episodes per agent: `{len(base_results['env_returns'])}`
 
 ## Results
