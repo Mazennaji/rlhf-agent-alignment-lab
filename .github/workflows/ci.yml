@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install swig
           pip install -r requirements.txt
-          pip install "gymnasium[box2d]"
+          pip install "gymnasium[box2d]" tensorboard
 
       - name: Verify Box2D
         run: python -c "import Box2D; print('Box2D OK')"
