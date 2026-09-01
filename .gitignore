@@ -19,3 +19,6 @@ preference_collection/tmp/
 preference_collection/data/rounds/
 rlhf_finetune/checkpoints/rounds/
 reward_model/checkpoints/round_*.pt
+
+dpo/checkpoints/
+dpo/results/

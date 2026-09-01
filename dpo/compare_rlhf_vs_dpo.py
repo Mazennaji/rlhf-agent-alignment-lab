@@ -2,6 +2,7 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
+import torch
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 
@@ -57,8 +58,6 @@ def evaluate_dpo_agent(n_episodes=50, max_steps=500):
 def compare_rlhf_vs_dpo():
     base_returns = evaluate_ppo_agent("base_agent/checkpoints/base_ppo_final")
     rlhf_returns = evaluate_ppo_agent("rlhf_finetune/checkpoints/rlhf_ppo_final")
-
-    import torch
     dpo_returns = evaluate_dpo_agent()
 
     print(f"Base PPO:   mean={np.mean(base_returns):.2f}  std={np.std(base_returns):.2f}")
