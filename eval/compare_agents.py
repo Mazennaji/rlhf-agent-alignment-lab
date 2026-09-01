@@ -9,6 +9,7 @@ from stable_baselines3 import PPO
 from envs.base_env import make_env
 from configs.config import CFG
 from reward_model.ensemble import RewardModelEnsemble
+from eval.hacking_monitor import run_hacking_checks
 
 
 def load_reward_model(obs_dim: int, action_dim: int) -> RewardModelEnsemble:
@@ -150,7 +151,7 @@ def classify_outcome(base_results, rlhf_results):
     return outcome, env_delta, learned_delta
 
 
-def write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta, out_path):
+def write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta, hacking_summary, out_path):
     base_env, base_learned = compute_gap_metric(base_results)
     rlhf_env, rlhf_learned = compute_gap_metric(rlhf_results)
 
@@ -176,6 +177,9 @@ def write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta
 
 ## Interpretation
 {outcome}
+
+## Reward Hacking Check
+{hacking_summary}
 
 ## Charts
 - `env_reward_comparison.png`
@@ -209,6 +213,13 @@ def compare_agents():
     base_results = evaluate(base_model, "Base PPO Agent", env, reward_model, action_dim, n_episodes=n_episodes)
     rlhf_results = evaluate(rlhf_model, "RLHF-Tuned Agent", env, reward_model, action_dim, n_episodes=n_episodes)
 
+    report = run_hacking_checks(
+        base_results, rlhf_results,
+        reward_model=reward_model, env=env, rlhf_model=rlhf_model, action_dim=action_dim
+    )
+    print("\n--- Reward Hacking Check ---")
+    print(report.summary())
+
     env.close()
 
     out_dir = "eval/results"
@@ -222,7 +233,7 @@ def compare_agents():
     outcome, env_delta, learned_delta = classify_outcome(base_results, rlhf_results)
     print(f"\n{outcome}")
 
-    write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta, "eval/FINDINGS.md")
+    write_findings(base_results, rlhf_results, outcome, env_delta, learned_delta, report.summary(), "eval/FINDINGS.md")
 
     print(f"\n✅ Charts saved to {out_dir}/")
     print("✅ eval/FINDINGS.md updated automatically")
