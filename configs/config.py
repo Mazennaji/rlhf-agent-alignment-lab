@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, fields
+
 
 @dataclass
 class Config:
@@ -18,5 +20,12 @@ class Config:
 
     finetune_timesteps: int = 80_000
     kl_coef: float = 0.1
+
+    def __post_init__(self):
+        for f in fields(self):
+            env_val = os.getenv(f.name.upper())
+            if env_val is not None:
+                setattr(self, f.name, f.type(env_val))
+
 
 CFG = Config()
