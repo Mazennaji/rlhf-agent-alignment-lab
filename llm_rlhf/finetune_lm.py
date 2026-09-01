@@ -21,7 +21,7 @@ def token_log_probs_from_logits(logits, tokens):
     return lp
 
 
-def finetune_lm_rlhf(n_steps=200, kl_coef=0.3, lr=1e-5, max_new_tokens=15, max_grad_norm=1.0):
+def finetune_lm_rlhf(n_steps=200, kl_coef=0.1, lr=1e-4, max_new_tokens=15, max_grad_norm=1.0):
     model, tokenizer = load_base_lm()
     model.gradient_checkpointing_enable()
     model.config.use_cache = False
@@ -40,6 +40,7 @@ def finetune_lm_rlhf(n_steps=200, kl_coef=0.3, lr=1e-5, max_new_tokens=15, max_g
 
     baseline = 0.0
     baseline_momentum = 0.9
+    initialized = False
 
     for step in range(n_steps):
         prompt = random.choice(PROMPTS)
@@ -72,22 +73,29 @@ def finetune_lm_rlhf(n_steps=200, kl_coef=0.3, lr=1e-5, max_new_tokens=15, max_g
         gen_lp = cur_lp[:, prompt_len - 1:]
         sequence_log_prob = gen_lp.sum()
 
-        baseline = baseline_momentum * baseline + (1 - baseline_momentum) * reward
+        if not initialized:
+            baseline = reward
+            initialized = True
+        else:
+            baseline = baseline_momentum * baseline + (1 - baseline_momentum) * reward
         advantage = reward - baseline
 
         loss = -sequence_log_prob * advantage + kl_coef * kl
 
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
         optimizer.step()
 
         if (step + 1) % 20 == 0:
-            print(f"step {step+1}/{n_steps} reward={reward:.3f} kl={kl.item():.4f} loss={loss.item():.4f}")
+            print(
+                f"step {step+1}/{n_steps} reward={reward:.3f} adv={advantage:+.3f} "
+                f"kl={kl.item():.4f} grad={grad_norm:.3f} loss={loss.item():.4f}"
+            )
 
     os.makedirs("llm_rlhf/checkpoints", exist_ok=True)
     model.config.use_cache = True
-    model.save_pretrained("llm_rlhf/checkpoints/rlhf_gpt2", safe_serialization=False)
+    model.save_pretrained("llm_rlhf/checkpoints/rlhf_gpt2")
     tokenizer.save_pretrained("llm_rlhf/checkpoints/rlhf_gpt2")
     print("RLHF-tuned GPT-2 saved to llm_rlhf/checkpoints/rlhf_gpt2")
 
