@@ -22,3 +22,5 @@ reward_model/checkpoints/round_*.pt
 
 dpo/checkpoints/
 dpo/results/
+llm_rlhf/checkpoints/
+llm_rlhf/data/
