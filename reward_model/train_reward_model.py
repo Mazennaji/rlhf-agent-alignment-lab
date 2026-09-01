@@ -84,7 +84,7 @@ def train_reward_model_ensemble():
     action_dim = env.action_space.n
     env.close()
 
-    pkl_path = "preference_collection/data/preference_pairs_diverse.pkl"
+    pkl_path = "preference_collection/data/preference_pairs.pkl"
     os.makedirs("reward_model/checkpoints", exist_ok=True)
     os.makedirs("reward_model/logs", exist_ok=True)
 
@@ -98,10 +98,10 @@ def train_reward_model_ensemble():
         json.dump(all_history, f, indent=2)
 
     final_val_accs = [all_history[f"model_{i}"][-1]["val_acc"] for i in range(CFG.reward_model_ensemble_size)]
-    print(f"\n✅ Trained {CFG.reward_model_ensemble_size} reward models.")
-    print(f"Final val accuracy — mean={sum(final_val_accs)/len(final_val_accs):.2%}, "
+    print(f"\nTrained {CFG.reward_model_ensemble_size} reward models.")
+    print(f"Final val accuracy - mean={sum(final_val_accs)/len(final_val_accs):.2%}, "
           f"min={min(final_val_accs):.2%}, max={max(final_val_accs):.2%}")
-    print("✅ Calibration history saved to reward_model/logs/calibration_history.json")
+    print("Calibration history saved to reward_model/logs/calibration_history.json")
 
 
 if __name__ == "__main__":
