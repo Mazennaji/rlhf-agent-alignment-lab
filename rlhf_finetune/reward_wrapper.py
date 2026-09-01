@@ -9,7 +9,6 @@ class ModelRef:
 
 
 class RLHFRewardWrapper(gym.Wrapper):
-
     def __init__(self, env, reward_model, base_model, current_model_ref: ModelRef,
                  action_dim: int, kl_coef: float = 0.1):
         super().__init__(env)
