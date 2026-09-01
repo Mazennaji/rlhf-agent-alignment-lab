@@ -25,10 +25,24 @@ def collect_trajectory(model, env, max_steps, deterministic=False):
     }
 
 
+def safe_render(env, last_good_frame):
+    try:
+        frame = env.render()
+        if frame is not None:
+            return frame
+    except Exception:
+        pass
+    return last_good_frame
+
+
 def collect_trajectory_with_frames(model, env, max_steps, deterministic=False):
     obs, info = env.reset()
     observations, actions, rewards, frames = [], [], [], []
-    frames.append(env.render())
+
+    first_frame = safe_render(env, None)
+    if first_frame is None:
+        first_frame = np.zeros((400, 600, 3), dtype=np.uint8)
+    frames.append(first_frame)
 
     for _ in range(max_steps):
         action, _ = model.predict(obs, deterministic=deterministic)
@@ -37,7 +51,7 @@ def collect_trajectory_with_frames(model, env, max_steps, deterministic=False):
         observations.append(obs)
         actions.append(action)
         rewards.append(reward)
-        frames.append(env.render())
+        frames.append(safe_render(env, frames[-1]))
 
         obs = next_obs
         if terminated or truncated:
