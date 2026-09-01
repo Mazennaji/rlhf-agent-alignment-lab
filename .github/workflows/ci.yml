@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies for Box2D
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y swig
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Sanity check environment
+        run: python 0_sanity_check.py
+
+      - name: Smoke-test base agent training
+        run: |
+          python -c "
+          from configs.config import CFG
+          CFG.base_timesteps = 2000
+          from base_agent.train import train_base_agent
+          train_base_agent()
+          "
+
+      - name: Smoke-test preference collection
+        run: |
+          python -c "
+          from configs.config import CFG
+          CFG.num_trajectory_pairs = 10
+          CFG.trajectory_length = 50
+          from preference_collection.generate_pairs import build_preference_dataset
+          build_preference_dataset()
+          "
+
+      - name: Smoke-test reward model training
+        run: |
+          python -c "
+          from configs.config import CFG
+          CFG.reward_model_epochs = 2
+          CFG.reward_model_ensemble_size = 2
+          from reward_model.train_reward_model import train_reward_model_ensemble
+          train_reward_model_ensemble()
+          "
+
+      - name: Smoke-test RLHF fine-tuning
+        run: |
+          python -c "
+          from configs.config import CFG
+          CFG.finetune_timesteps = 1000
+          from rlhf_finetune.finetune import finetune_with_rlhf
+          finetune_with_rlhf()
+          "
+
+      - name: Smoke-test evaluation
+        run: |
+          python -c "
+          from configs.config import CFG
+          from eval.compare_agents import compare_agents
+          import matplotlib
+          matplotlib.use('Agg')
+          compare_agents()
+          "
