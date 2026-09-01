@@ -21,7 +21,7 @@ def token_log_probs_from_logits(logits, tokens):
     return lp
 
 
-def finetune_lm_rlhf(n_steps=200, kl_coef=0.05, lr=1e-4, max_new_tokens=15):
+def finetune_lm_rlhf(n_steps=200, kl_coef=0.3, lr=1e-5, max_new_tokens=15, max_grad_norm=1.0):
     model, tokenizer = load_base_lm()
     model.gradient_checkpointing_enable()
     model.config.use_cache = False
@@ -66,7 +66,8 @@ def finetune_lm_rlhf(n_steps=200, kl_coef=0.05, lr=1e-4, max_new_tokens=15):
             ref_logits = ref_model(output_ids).logits
             ref_lp = token_log_probs_from_logits(ref_logits, output_ids)
 
-        kl = (cur_lp - ref_lp).mean()
+        log_ratio = ref_lp - cur_lp
+        kl = (log_ratio.exp() - 1 - log_ratio).mean()
 
         gen_lp = cur_lp[:, prompt_len - 1:]
         sequence_log_prob = gen_lp.sum()
@@ -78,6 +79,7 @@ def finetune_lm_rlhf(n_steps=200, kl_coef=0.05, lr=1e-4, max_new_tokens=15):
 
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
         optimizer.step()
 
         if (step + 1) % 20 == 0:
