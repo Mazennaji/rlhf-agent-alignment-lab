@@ -84,7 +84,7 @@ def train_reward_model_ensemble():
     action_dim = env.action_space.n
     env.close()
 
-    pkl_path = "preference_collection/data/preference_pairs.pkl"
+    pkl_path = "preference_collection/data/preference_pairs_diverse.pkl"
     os.makedirs("reward_model/checkpoints", exist_ok=True)
     os.makedirs("reward_model/logs", exist_ok=True)
 
