@@ -18,6 +18,7 @@ jobs:
       TRAJECTORY_LENGTH: 50
       REWARD_MODEL_EPOCHS: 2
       REWARD_MODEL_ENSEMBLE_SIZE: 2
+      MIN_PAIR_DIVERSITY: 0
 
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +60,9 @@ jobs:
           from preference_collection.generate_pairs import build_preference_dataset
           build_preference_dataset()
           "
+
+      - name: List preference data
+        run: ls -la preference_collection/data/ || echo "data dir missing"
 
       - name: Smoke-test reward model training
         run: |
